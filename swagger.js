@@ -19,6 +19,10 @@ const options = {
       {
         url: 'http://localhost:8080',
         description: 'Development server'
+      },
+      {
+        url: 'https://koinsave-backend-developer-practical-pre-sh65.onrender.com',
+        description: 'Production server'
       }
     ],
     components: {
