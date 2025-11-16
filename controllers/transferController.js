@@ -6,30 +6,48 @@ const transfer = async (req, res) => {
     const transferAmount = Number(amount);
 
     if (!senderAccountNumber || !recipientAccountNumber || !transferAmount) {
-      return res.status(400).json({ message: 'All fields are required.' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'All fields are required.' 
+      });
     }
 
     if (transferAmount <= 0) {
-      return res.status(400).json({ message: 'Amount must be greater than zero.' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Amount must be greater than zero.' 
+      });
     }
 
     const sender = await userModel.findOne({ accountNumber: senderAccountNumber });
     const recipient = await userModel.findOne({ accountNumber: recipientAccountNumber });
 
     if (!sender) {
-      return res.status(404).json({ message: 'Sender not found.' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Sender account not found.' 
+      });
     }
 
     if (!recipient) {
-      return res.status(404).json({ message: 'Recipient not found.' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Recipient account not found.' 
+      });
     }
 
     if (sender.accountNumber === recipient.accountNumber) {
-      return res.status(400).json({ message: 'Cannot send money to your own account.' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Cannot send money to your own account.' 
+      });
     }
 
     if (sender.balance < transferAmount) {
-      return res.status(400).json({ message: 'Insufficient balance.' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Insufficient balance.' 
+      });
     }
 
     sender.balance -= transferAmount;
@@ -53,7 +71,10 @@ const transfer = async (req, res) => {
     });
   } catch (err) {
     console.log('Send money error:', err);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ 
+      success: false,
+      message: 'Internal server error' 
+    });
   }
 };
 

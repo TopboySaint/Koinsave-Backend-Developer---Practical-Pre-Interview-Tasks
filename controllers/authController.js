@@ -11,6 +11,15 @@ const signup = async (req, res) => {
   const email = req.body.email.toLowerCase();
 
   try {
+    // Check if user already exists
+    const existingUser = await userModel.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({ 
+        success: false,
+        message: "Email already registered. Please sign in instead." 
+      });
+    }
+
     const accountNumber = Math.floor(1000000000 + Math.random() * 9000000000).toString();
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     const user = new userModel({ firstName, lastName, email, phone, password: hashedPassword, accountNumber });
@@ -42,7 +51,19 @@ const signup = async (req, res) => {
     });
   } catch (err) {
     console.log(err);
-    res.status(500).json({ message: "User account not created" });
+    
+    // Handle MongoDB duplicate key error
+    if (err.code === 11000) {
+      return res.status(409).json({ 
+        success: false,
+        message: "Email already registered. Please sign in instead." 
+      });
+    }
+    
+    res.status(500).json({ 
+      success: false,
+      message: "User account not created" 
+    });
   }
 };
 
@@ -59,13 +80,19 @@ const signin = async (req, res) => {
     const foundUser = await userModel.findOne({ email });
 
     if (!foundUser) {
-      return res.status(401).json({ message: "User not found" });
+      return res.status(401).json({ 
+        success: false,
+        message: "User not found. Please check your email or sign up." 
+      });
     }
 
     const isMatch = await bcrypt.compare(password, foundUser.password);
 
     if (!isMatch) {
-      return res.status(401).json({ message: "Incorrect password" });
+      return res.status(401).json({ 
+        success: false,
+        message: "Incorrect password. Please try again." 
+      });
     }
 
     const claims = {
@@ -78,7 +105,10 @@ const signin = async (req, res) => {
     jwt.sign(claims, process.env.JWT_SECRET, { expiresIn: "10m" }, (err, token) => {
       if (err) {
         console.log(`Token not generated`, err);
-        return res.status(500).json({ message: 'Error generating token' });
+        return res.status(500).json({ 
+          success: false,
+          message: 'Error generating token' 
+        });
       }
       return res.status(200).json({
         message: 'Signed in successfully',
@@ -88,7 +118,10 @@ const signin = async (req, res) => {
     });
   } catch (err) {
     console.log(`Signin error:`, err);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ 
+      success: false,
+      message: "Internal server error" 
+    });
   }
 };
 
