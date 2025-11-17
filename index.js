@@ -29,7 +29,7 @@ mongoose.connect(uri)
   })
 
 app.use(cors({
-    origin: ['http://localhost:5173', 'https://koinsave-frontend-developer-practic.vercel.app/','http://localhost:5174'],
+    origin: ['http://localhost:5173', 'https://koinsave-frontend-developer-practic.vercel.app','http://localhost:5174'],
     credentials: true,
   }));
 
