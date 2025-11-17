@@ -25,8 +25,8 @@ const signup = async (req, res) => {
     const user = new userModel({ firstName, lastName, email, phone, password: hashedPassword, accountNumber });
     await user.save();
     console.log("user saved successfully");
-    res.status(201).json({ message: "User account has been created !", accountNumber });
 
+    // Send welcome email
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -42,13 +42,25 @@ const signup = async (req, res) => {
       html: welcomeEmailTemplate(firstName, lastName, email, phone, accountNumber),
     };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.log(`Error sending mail: ${error.message}`);
-      } else {
-        console.log(`Email sent successfully: ${info.response}`);
-      }
-    });
+    
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log(`Welcome email sent successfully to ${email}`);
+      
+      res.status(201).json({ 
+        success: true,
+        message: "User account has been created! Welcome email sent.", 
+        accountNumber 
+      });
+    } catch (emailError) {
+      console.log(`Error sending email: ${emailError.message}`);
+      // Still return success since user was created
+      res.status(201).json({ 
+        success: true,
+        message: "User account has been created! (Email notification failed)", 
+        accountNumber 
+      });
+    }
   } catch (err) {
     console.log(err);
     
